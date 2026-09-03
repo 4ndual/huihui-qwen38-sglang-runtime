@@ -45,7 +45,7 @@ COPY --from=validated /usr/src/gdrdrv-2.5.1 /usr/src/gdrdrv-2.5.1
 
 RUN ln -sf /usr/lib/$(uname -m)-linux-gnu/libmlx5.so.1 /usr/lib/$(uname -m)-linux-gnu/libmlx5.so
 
-COPY runtime/start-pro6000.sh /opt/runpod/start.sh
+COPY start.sh /opt/runpod/start.sh
 RUN chmod 0755 /opt/runpod/start.sh \
     && test -d /opt/sglang/lib/python3.12/site-packages/sglang \
     && test -x /opt/sglang/bin/python3 \
