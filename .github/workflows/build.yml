@@ -1,0 +1,56 @@
+name: Build pinned RunPod runtime
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - Containerfile
+      - start.sh
+      - .github/workflows/build.yml
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Free disposable hosted-runner SDKs
+        run: |
+          echo "Before cleanup"
+          df -h /
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android /opt/hostedtoolcache/CodeQL
+          sudo docker system prune --all --force
+          echo "After cleanup"
+          df -h /
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Authenticate to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push exact runtime
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Containerfile
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ghcr.io/4ndual/huihui-qwen38-sglang-runtime:dflash2-5f55db35-sm120-runtime-v1
+            ghcr.io/4ndual/huihui-qwen38-sglang-runtime:latest
+          provenance: mode=max
+          sbom: true
+
+      - name: Record final disk state
+        if: always()
+        run: df -h /
