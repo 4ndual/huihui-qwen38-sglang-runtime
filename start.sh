@@ -33,7 +33,7 @@ terminate() {
 }
 trap terminate TERM INT EXIT
 QWEN38_VOLUME_ROOT="$VOLUME_ROOT" PORT_HEALTH="$PORT_HEALTH" \
-  HEALTH_READY_FILE="$HEALTH_READY_FILE" "$VOLUME_ROOT/bin/launch-health" &
+  HEALTH_READY_FILE="$HEALTH_READY_FILE" "$VOLUME_ROOT/bin/lb-health-server" &
 health_pid=$!
 echo "BOOT stage=lb-health-initializing status=204 port=$PORT_HEALTH at=$(date -u +%FT%TZ)"
 
@@ -76,6 +76,7 @@ python3 -m sglang.launch_server \
   --disable-prefill-cuda-graph \
   --cuda-graph-max-bs 1 \
   --disable-flashinfer-autotune \
+  --language-model-only \
   --num-continuous-decode-steps 2 \
   --mamba-radix-cache-strategy extra_buffer \
   --mamba-ssm-dtype bfloat16 \
@@ -88,6 +89,7 @@ python3 -m sglang.launch_server \
   --speculative-draft-model-path "$DRAFT_MODEL_DIR" \
   --speculative-draft-model-quantization unquant \
   --speculative-num-draft-tokens "$DFLASH_DRAFT_TOKENS" \
+  --skip-server-warmup \
   2>&1 | tee /tmp/sglang.log &
 sglang_pipeline_pid=$!
 

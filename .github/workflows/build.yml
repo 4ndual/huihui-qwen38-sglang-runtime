@@ -46,7 +46,7 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: |
-            ghcr.io/4ndual/huihui-qwen38-sglang-runtime:dflash2-5f55db35-sm120-runtime-v2
+            ghcr.io/4ndual/huihui-qwen38-sglang-runtime:dflash2-5f55db35-sm120-runtime-v3
             ghcr.io/4ndual/huihui-qwen38-sglang-runtime:latest
           provenance: mode=max
           sbom: true

@@ -10,14 +10,15 @@ FROM nvidia/cuda@sha256:1d66a0c2041af1dfff8a13072a2e8f0543bbdf7a44224c2c96fd9d64
 ENV DEBIAN_FRONTEND=noninteractive \
     CUDA_HOME=/usr/local/cuda \
     PATH=/opt/sglang/bin:/usr/local/nvidia/bin:/usr/local/cuda/bin:/usr/local/cuda/nvvm/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
+    PYTHONPATH=/sgl-workspace/sglang/python:/opt/sglang/lib/python3.12/site-packages \
     LD_LIBRARY_PATH=/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/local/cuda/lib64 \
     LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
     SGLANG_BUILD_COMMIT=5f55db35e926d50676f75b812640ea2410b0fe0e \
-    SGLANG_IMAGE_TAG=ghcr.io/4ndual/huihui-qwen38-sglang-runtime:dflash2-5f55db35-sm120-runtime-v2
+    SGLANG_IMAGE_TAG=ghcr.io/4ndual/huihui-qwen38-sglang-runtime:dflash2-5f55db35-sm120-runtime-v3
 
 RUN apt-get update && apt-get install -y --no-install-recommends --allow-change-held-packages \
-    python3.12-full ca-certificates curl procps libnuma1 libunwind8 libgomp1 \
+    python3.12 ca-certificates curl procps libnuma1 libunwind8 libgomp1 \
     && update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 2 \
     && update-alternatives --set python3 /usr/bin/python3.12 \
     && ln -sf /usr/bin/python3.12 /usr/bin/python \
@@ -29,16 +30,16 @@ RUN mkdir -p /opt/sglang/bin /opt/sglang/lib/python3.12/site-packages \
     && ln -s python3 /opt/sglang/bin/python \
     && ln -s python3 /opt/sglang/bin/python3.12
 COPY --from=validated /opt/sglang/lib/python3.12/site-packages /opt/sglang/lib/python3.12/site-packages
-COPY --from=validated /sgl-workspace /sgl-workspace
+COPY --from=validated /sgl-workspace/sglang/python /sgl-workspace/sglang/python
 COPY --from=validated /opt/sglang/bin/sglang /opt/sglang/bin/sglang
 COPY --from=validated /root/.cache/sglang /root/.cache/sglang
 
 COPY start.sh /opt/runpod/start.sh
 RUN chmod 0755 /opt/runpod/start.sh \
-    && test -d /opt/sglang/lib/python3.12/site-packages/sglang \
     && test -x /opt/sglang/bin/python3 \
-    && rm -rf /sgl-workspace/sglang/test /sgl-workspace/sglang/tests \
-              /sgl-workspace/sglang/docs /sgl-workspace/sglang/.git
+    && test -d /sgl-workspace/sglang/python/sglang \
+    && /opt/sglang/bin/python3 -c 'import torch, sglang; print(torch.__version__)' \
+    && /opt/sglang/bin/python3 -m sglang.launch_server --help >/dev/null
 
 WORKDIR /sgl-workspace/sglang
 LABEL org.opencontainers.image.source=https://github.com/4ndual/huihui-qwen38-sglang-runtime \
