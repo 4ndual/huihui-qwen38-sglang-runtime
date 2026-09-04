@@ -24,7 +24,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-change-
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
-RUN python3 -m venv /opt/sglang
+RUN mkdir -p /opt/sglang/bin /opt/sglang/lib/python3.12/site-packages \
+    && ln -s /usr/bin/python3.12 /opt/sglang/bin/python3 \
+    && ln -s python3 /opt/sglang/bin/python \
+    && ln -s python3 /opt/sglang/bin/python3.12
 COPY --from=validated /opt/sglang/lib/python3.12/site-packages /opt/sglang/lib/python3.12/site-packages
 COPY --from=validated /sgl-workspace /sgl-workspace
 COPY --from=validated /opt/sglang/bin/sglang /opt/sglang/bin/sglang
